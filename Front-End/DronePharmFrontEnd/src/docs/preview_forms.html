@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DronePharm — Páginas de Cadastro / Listagem</title>
+<style>
+:root {
+  --surface-base:     #0a0e14;
+  --surface-panel:    #0f1520;
+  --surface-card:     #151c2a;
+  --surface-overlay:  #1a2236;
+  --surface-input:    #111827;
+  --surface-border:   #1e2d45;
+  --text-primary:     #e8edf5;
+  --text-secondary:   #8a9bb8;
+  --text-muted:       #4a5878;
+  --text-inverse:     #0a0e14;
+  --accent:           #00ff9c;
+  --accent-dim:       #00cc7a;
+  --accent-ghost:     rgba(0,255,156,0.08);
+  --status-ok:        #22c55e;
+  --status-ok-bg:     rgba(34,197,94,0.10);
+  --status-warn:      #f59e0b;
+  --status-warn-bg:   rgba(245,158,11,0.10);
+  --status-danger:    #ef4444;
+  --status-danger-bg: rgba(239,68,68,0.10);
+  --status-info:      #3b82f6;
+  --status-info-bg:   rgba(59,130,246,0.10);
+  --status-lock:      #8b5cf6;
+  --status-lock-bg:   rgba(139,92,246,0.10);
+  --status-neutral:   #64748b;
+  --status-neutral-bg:rgba(100,116,139,0.10);
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px var(--surface-border);
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--surface-base);color:var(--text-primary);font-family:var(--font-ui);font-size:14px;line-height:1.5}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;padding:16px 24px 0;background:var(--surface-base);border-bottom:1px solid var(--surface-border);position:sticky;top:0;z-index:10}
+.tab{padding:8px 18px;font-size:.875rem;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;transition:all var(--transition-fast);margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text-secondary)}
+.tab.on{color:var(--text-primary);border-bottom-color:var(--accent);font-weight:500}
+
+/* ── Pages ── */
+.page{display:none}
+.page.on{display:block}
+
+/* ── Topbar ── */
+.topbar{height:56px;background:var(--surface-panel);border-bottom:1px solid var(--surface-border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:41px;z-index:9}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.875rem}
+.bc-sep{color:var(--text-muted)}
+.bc-link{color:var(--text-secondary);cursor:pointer}
+.bc-link:hover{color:var(--text-primary)}
+.bc-cur{color:var(--text-primary);font-weight:500}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-sm);font-family:var(--font-ui);font-weight:500;border:none;cursor:pointer;transition:background var(--transition-fast),color var(--transition-fast)}
+.btn-sm{height:32px;padding:0 12px;font-size:.8125rem}
+.btn-md{height:36px;padding:0 16px;font-size:.875rem}
+.bp{background:var(--accent);color:var(--text-inverse);font-weight:600}
+.bp:hover{background:var(--accent-dim)}
+.bg{background:transparent;color:var(--text-secondary);border:1px solid var(--surface-border)}
+.bg:hover{background:var(--surface-overlay);color:var(--text-primary)}
+.bdr{background:var(--status-danger-bg);color:var(--status-danger);border:1px solid rgba(239,68,68,.3)}
+.bdr:hover{background:rgba(239,68,68,.18)}
+
+/* ── Page content ── */
+.content{max-width:760px;margin:0 auto;padding:28px 24px}
+.content-wide{max-width:1080px;margin:0 auto;padding:28px 24px}
+.pg-title{font-size:1.1875rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.pg-sub{font-size:.875rem;color:var(--text-secondary);margin-bottom:28px}
+
+/* ── Form card ── */
+.form-card{background:var(--surface-card);border:1px solid var(--surface-border);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;box-shadow:var(--shadow-card)}
+.form-section-title{font-size:.75rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:16px}
+.form-divider{border:none;border-top:1px solid var(--surface-border);margin:20px 0}
+
+/* Grid layouts */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g12{display:grid;grid-template-columns:1fr 2fr;gap:14px}
+.g-full{grid-column:1/-1}
+
+/* Field */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.8125rem;font-weight:500;color:var(--text-secondary)}
+.field label .req{color:var(--status-danger);margin-left:2px}
+.field input,.field select,.field textarea{
+  background:var(--surface-input);
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  color:var(--text-primary);
+  font-family:var(--font-ui);
+  font-size:.875rem;
+  padding:0 12px;
+  height:38px;
+  outline:none;
+  transition:border-color var(--transition-fast),box-shadow var(--transition-fast);
+  width:100%;
+  -webkit-appearance:none;
+}
+.field textarea{height:auto;padding:9px 12px;resize:vertical;min-height:80px}
+.field select{cursor:pointer}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-ghost);
+}
+.field input.err{border-color:var(--status-danger);box-shadow:0 0 0 2px rgba(239,68,68,.18)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text-muted)}
+.field .err-msg{font-size:.75rem;color:var(--status-danger)}
+.field .hint{font-size:.75rem;color:var(--text-muted)}
+
+/* Select styled arrow */
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5878' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* Input with suffix */
+.input-wrap{position:relative}
+.input-wrap input{padding-right:44px}
+.input-suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);pointer-events:none;font-family:var(--font-ui)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-sm);font-size:.8125rem;font-weight:500}
+.bk{background:var(--status-lock-bg);color:var(--status-lock)}
+.bi{background:var(--status-info-bg);color:var(--status-info)}
+.bo{background:var(--status-ok-bg);color:var(--status-ok)}
+.bn{background:var(--status-neutral-bg);color:var(--status-neutral)}
+.bd{background:var(--status-danger-bg);color:var(--status-danger)}
+
+/* Form footer */
+.form-footer{display:flex;justify-content:flex-end;gap:10px;padding-top:16px;border-top:1px solid var(--surface-border);margin-top:20px}
+
+/* ── Table ── */
+.tbl-wrap{background:var(--surface-card);border:1px solid var(--surface-border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
+table{width:100%;border-collapse:separate;border-spacing:0}
+thead{background:var(--surface-overlay)}
+th{padding:10px 16px;text-align:left;font-size:.6875rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--surface-border);white-space:nowrap}
+td{padding:12px 16px;font-size:.875rem;color:var(--text-primary);border-bottom:1px solid var(--surface-border)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer;transition:background var(--transition-fast)}
+tbody tr:hover td{background:var(--surface-overlay)}
+td.mono{font-family:var(--font-data);font-size:.8125rem}
+td.muted{color:var(--text-secondary)}
+td.actions{text-align:right}
+
+/* ── Pagination ── */
+.pagination{background:var(--surface-panel);border-top:1px solid var(--surface-border);padding:11px 16px;display:flex;justify-content:space-between;align-items:center}
+.pg-info{font-size:.8125rem;color:var(--text-muted)}
+.pg-btns{display:flex;gap:6px}
+
+/* ── Filters bar ── */
+.filters{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-input{background:var(--surface-input);border:1px solid var(--surface-border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:.875rem;padding:0 12px;height:34px;outline:none;min-width:200px;font-family:var(--font-ui)}
+.filter-input:focus{border-color:var(--accent)}
+.filter-input::placeholder{color:var(--text-muted)}
+.filter-select{background:var(--surface-input);border:1px solid var(--surface-border);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:.8125rem;padding:0 28px 0 10px;height:34px;outline:none;cursor:pointer;font-family:var(--font-ui);-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5878' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-select:focus{border-color:var(--accent)}
+
+/* ── Section header ── */
+.section-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+.section-hd h2{font-size:.9375rem;font-weight:600;color:var(--text-primary)}
+.section-hd span{font-size:.8125rem;color:var(--text-muted)}
+
+/* ── Priority indicator ── */
+.prio{display:inline-flex;align-items:center;gap:5px;font-size:.8125rem}
+.prio-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.p1 .prio-dot{background:var(--status-danger)}
+.p2 .prio-dot{background:var(--status-info)}
+.p3 .prio-dot{background:var(--text-muted)}
+
+/* ── Radio group ── */
+.radio-group{display:flex;flex-direction:column;gap:8px}
+.radio-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--surface-border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color var(--transition-fast),background var(--transition-fast)}
+.radio-item:hover{border-color:var(--surface-overlay);background:var(--surface-overlay)}
+.radio-item.sel{border-color:var(--accent);background:var(--accent-ghost)}
+.radio-dot{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--surface-border);flex-shrink:0;margin-top:1px;position:relative;transition:border-color var(--transition-fast)}
+.radio-item.sel .radio-dot{border-color:var(--accent)}
+.radio-item.sel .radio-dot::after{content:'';position:absolute;top:3px;left:3px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.radio-text strong{display:block;font-size:.875rem;color:var(--text-primary);font-weight:500}
+.radio-text span{font-size:.75rem;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<!-- Tab navigation -->
+<div class="tabs">
+  <div class="tab on" onclick="show('form-pedido',this)">Cadastro de Pedido</div>
+  <div class="tab" onclick="show('form-drone',this)">Cadastro de Drone</div>
+  <div class="tab" onclick="show('list-pedidos',this)">Lista de Pedidos</div>
+  <div class="tab" onclick="show('list-drones',this)">Lista de Drones</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FORM: Cadastro de Pedido
+════════════════════════════════════════════ -->
+<div class="page on" id="form-pedido">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span class="bc-link">Pedidos</span>
+      <span class="bc-sep">/</span>
+      <span class="bc-cur">Novo Pedido</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn bg btn-sm">Cancelar</button>
+      <button class="btn bp btn-sm">Salvar Pedido</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="pg-title">Novo Pedido de Entrega</div>
+    <div class="pg-sub">Preencha os dados do medicamento e o endereço de destino.</div>
+
+    <!-- Destino -->
+    <div class="form-card">
+      <div class="form-section-title">Destino</div>
+      <div class="g2">
+        <div class="field g-full">
+          <label>Farmácia de origem <span class="req">*</span></label>
+          <select>
+            <option value="">Selecione a farmácia</option>
+            <option selected>Farm. Popular Saúde — Sabará Centro</option>
+            <option>Farm. Popular Vida — Caeté</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Latitude de destino <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" value="-19.9320" step="0.0001">
+            <span class="input-suffix">°</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Longitude de destino <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" value="-43.9408" step="0.0001">
+            <span class="input-suffix">°</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carga -->
+    <div class="form-card">
+      <div class="form-section-title">Carga</div>
+      <div class="g2">
+        <div class="field">
+          <label>Peso total <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" value="0.85" step="0.01" min="0">
+            <span class="input-suffix">kg</span>
+          </div>
+          <span class="hint">Máximo suportado pelo drone: 2.5 kg</span>
+        </div>
+        <div class="field">
+          <label>Descrição do medicamento</label>
+          <input type="text" placeholder="ex: Insulina + seringas">
+        </div>
+        <div class="field g-full">
+          <label>Janela de entrega (fim)</label>
+          <input type="datetime-local">
+          <span class="hint">Deixe em branco para calcular automaticamente pela prioridade</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prioridade -->
+    <div class="form-card">
+      <div class="form-section-title">Prioridade</div>
+      <div class="radio-group">
+        <div class="radio-item">
+          <div class="radio-dot"></div>
+          <div class="radio-text">
+            <strong>P1 — Urgente</strong>
+            <span>Janela automática: 1 hora</span>
+          </div>
+        </div>
+        <div class="radio-item sel">
+          <div class="radio-dot"></div>
+          <div class="radio-text">
+            <strong>P2 — Normal</strong>
+            <span>Janela automática: 4 horas</span>
+          </div>
+        </div>
+        <div class="radio-item">
+          <div class="radio-dot"></div>
+          <div class="radio-text">
+            <strong>P3 — Reabastecimento</strong>
+            <span>Janela automática: 24 horas</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="btn bg btn-md">Cancelar</button>
+        <button class="btn bp btn-md">Salvar Pedido</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FORM: Cadastro de Drone
+════════════════════════════════════════════ -->
+<div class="page" id="form-drone">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span class="bc-link">Drones</span>
+      <span class="bc-sep">/</span>
+      <span class="bc-cur">Novo Drone</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn bg btn-sm">Cancelar</button>
+      <button class="btn bp btn-sm">Registrar Drone</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="pg-title">Registrar Novo Drone</div>
+    <div class="pg-sub">Dados técnicos do hardware. O ID deve corresponder ao configurado no firmware.</div>
+
+    <!-- Identificação -->
+    <div class="form-card">
+      <div class="form-section-title">Identificação</div>
+      <div class="g2">
+        <div class="field">
+          <label>ID do drone <span class="req">*</span></label>
+          <input type="text" placeholder="ex: DP-03" style="font-family:var(--font-data)">
+          <span class="hint">Deve ser único e igual ao configurado no Arduino</span>
+        </div>
+        <div class="field">
+          <label>Modelo <span class="req">*</span></label>
+          <input type="text" placeholder="ex: DJI F450 Custom">
+        </div>
+      </div>
+    </div>
+
+    <!-- Especificações técnicas -->
+    <div class="form-card">
+      <div class="form-section-title">Especificações Técnicas</div>
+      <div class="g3">
+        <div class="field">
+          <label>Autonomia <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" placeholder="0" min="0" step="0.1">
+            <span class="input-suffix">km</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Carga máxima <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" placeholder="0.00" min="0" step="0.1">
+            <span class="input-suffix">kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Velocidade cruzeiro <span class="req">*</span></label>
+          <div class="input-wrap">
+            <input type="number" placeholder="0" min="0" step="0.5">
+            <span class="input-suffix">m/s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <div class="form-section-title">Validação do campo velocidade</div>
+      <div class="field" style="max-width:240px">
+        <label>Velocidade cruzeiro <span class="req">*</span></label>
+        <div class="input-wrap">
+          <input type="number" class="err" value="-5">
+          <span class="input-suffix">m/s</span>
+        </div>
+        <span class="err-msg">Velocidade deve ser maior que zero</span>
+      </div>
+
+      <div class="form-footer">
+        <button class="btn bg btn-md">Cancelar</button>
+        <button class="btn bp btn-md">Registrar Drone</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LIST: Pedidos
+════════════════════════════════════════════ -->
+<div class="page" id="list-pedidos">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span class="bc-cur">Pedidos</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn bg btn-sm">Calcular Rotas</button>
+      <button class="btn bp btn-sm">Novo Pedido</button>
+    </div>
+  </div>
+
+  <div class="content-wide">
+    <div class="section-hd">
+      <h2>Pedidos de Entrega</h2>
+      <span>247 registros</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <input class="filter-input" type="text" placeholder="Buscar por ID ou descrição">
+      <select class="filter-select">
+        <option>Todos os status</option>
+        <option>pendente</option>
+        <option>em_voo</option>
+        <option>entregue</option>
+      </select>
+      <select class="filter-select">
+        <option>Todas as prioridades</option>
+        <option>P1 — Urgente</option>
+        <option>P2 — Normal</option>
+        <option>P3 — Reabastec.</option>
+      </select>
+      <select class="filter-select">
+        <option>Todas as farmácias</option>
+        <option>Farm. Saúde — Sabará</option>
+      </select>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Prioridade</th>
+            <th>Farmácia</th>
+            <th>Peso</th>
+            <th>Status</th>
+            <th>Janela</th>
+            <th>Criado em</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">#2847</td>
+            <td><span class="prio p1"><span class="prio-dot"></span>P1 Urgente</span></td>
+            <td class="muted">Farm. Saúde — Sabará</td>
+            <td class="mono">0.85 kg</td>
+            <td><span class="badge bk">em_voo</span></td>
+            <td class="mono muted">15:30</td>
+            <td class="mono muted">14:47</td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">#2846</td>
+            <td><span class="prio p2"><span class="prio-dot"></span>P2 Normal</span></td>
+            <td class="muted">Farm. Vida — Caeté</td>
+            <td class="mono">1.20 kg</td>
+            <td><span class="badge bi">calculado</span></td>
+            <td class="mono muted">18:00</td>
+            <td class="mono muted">13:22</td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">#2845</td>
+            <td><span class="prio p1"><span class="prio-dot"></span>P1 Urgente</span></td>
+            <td class="muted">Farm. Saúde — Sabará</td>
+            <td class="mono">0.40 kg</td>
+            <td><span class="badge bo">entregue</span></td>
+            <td class="mono muted">12:00</td>
+            <td class="mono muted">11:15</td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">#2844</td>
+            <td><span class="prio p3"><span class="prio-dot"></span>P3 Reabastec.</span></td>
+            <td class="muted">Farm. Vida — Caeté</td>
+            <td class="mono">2.10 kg</td>
+            <td><span class="badge bn">pendente</span></td>
+            <td class="mono muted">amanhã</td>
+            <td class="mono muted">10:05</td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">#2843</td>
+            <td><span class="prio p2"><span class="prio-dot"></span>P2 Normal</span></td>
+            <td class="muted">Farm. Saúde — Sabará</td>
+            <td class="mono">0.65 kg</td>
+            <td><span class="badge bd">cancelado</span></td>
+            <td class="mono muted">09:30</td>
+            <td class="mono muted">08:50</td>
+            <td class="actions">
+              <button class="btn bdr btn-sm">Cancelado</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pg-info">Mostrando 1–5 de 247</span>
+        <div class="pg-btns">
+          <button class="btn bg btn-sm" style="opacity:.35;cursor:not-allowed">Anterior</button>
+          <button class="btn bg btn-sm">Próximo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LIST: Drones
+════════════════════════════════════════════ -->
+<div class="page" id="list-drones">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span class="bc-cur">Drones</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn bp btn-sm">Novo Drone</button>
+    </div>
+  </div>
+
+  <div class="content-wide">
+    <div class="section-hd">
+      <h2>Frota de Drones</h2>
+      <span>4 drones registrados</span>
+    </div>
+
+    <div class="filters">
+      <select class="filter-select">
+        <option>Todos os status</option>
+        <option>aguardando</option>
+        <option>em_voo</option>
+        <option>manutencao</option>
+      </select>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Modelo</th>
+            <th>Autonomia</th>
+            <th>Carga máx.</th>
+            <th>Velocidade</th>
+            <th>Bateria</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">DP-01</td>
+            <td>DJI F450 Custom</td>
+            <td class="mono muted">18 km</td>
+            <td class="mono muted">2.5 kg</td>
+            <td class="mono muted">12 m/s</td>
+            <td class="mono" style="color:var(--status-danger)">14%</td>
+            <td><span class="badge bk">em_voo</span></td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">DP-02</td>
+            <td>DJI F450 Custom</td>
+            <td class="mono muted">18 km</td>
+            <td class="mono muted">2.5 kg</td>
+            <td class="mono muted">12 m/s</td>
+            <td class="mono" style="color:var(--status-ok)">91%</td>
+            <td><span class="badge bo">aguardando</span></td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">DP-03</td>
+            <td>Tarot 650 Sport</td>
+            <td class="mono muted">22 km</td>
+            <td class="mono muted">3.0 kg</td>
+            <td class="mono muted">10 m/s</td>
+            <td class="mono" style="color:var(--status-warn)">38%</td>
+            <td><span class="badge" style="background:rgba(100,116,139,.1);color:#94a3b8">carregando</span></td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+          <tr>
+            <td class="mono">DP-04</td>
+            <td>Tarot 650 Sport</td>
+            <td class="mono muted">22 km</td>
+            <td class="mono muted">3.0 kg</td>
+            <td class="mono muted">10 m/s</td>
+            <td class="mono muted">—</td>
+            <td><span class="badge bd">manutencao</span></td>
+            <td class="actions"><button class="btn bg btn-sm">Ver</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pg-info">Mostrando 1–4 de 4</span>
+        <div class="pg-btns">
+          <button class="btn bg btn-sm" style="opacity:.35;cursor:not-allowed">Anterior</button>
+          <button class="btn bg btn-sm" style="opacity:.35;cursor:not-allowed">Próximo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+}
+</script>
+</body>
+</html>

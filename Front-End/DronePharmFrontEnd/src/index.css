@@ -1,0 +1,226 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "./styles/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: var(--surface-base);
+    --foreground: var(--text-primary);
+    --card: var(--surface-card);
+    --card-foreground: var(--text-primary);
+    --popover: var(--surface-panel);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--accent);
+    --primary-foreground: var(--text-inverse);
+    --secondary: var(--surface-overlay);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface-overlay);
+    --muted-foreground: var(--text-secondary);
+    --accent-foreground: var(--text-inverse);
+    --destructive: var(--status-danger);
+    --border: var(--surface-border);
+    --input: var(--surface-input);
+    --ring: var(--accent);
+    --chart-1: var(--accent);
+    --chart-2: var(--status-info);
+    --chart-3: var(--status-ok);
+    --chart-4: var(--status-warn);
+    --chart-5: var(--status-neutral);
+    --radius: var(--radius-lg);
+    --sidebar: var(--surface-panel);
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: var(--accent);
+    --sidebar-primary-foreground: var(--text-inverse);
+    --sidebar-accent: var(--surface-overlay);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--surface-border);
+    --sidebar-ring: var(--accent);
+}
+
+.dark {
+    --background: var(--surface-base);
+    --foreground: var(--text-primary);
+    --card: var(--surface-card);
+    --card-foreground: var(--text-primary);
+    --popover: var(--surface-panel);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--accent);
+    --primary-foreground: var(--text-inverse);
+    --secondary: var(--surface-overlay);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface-overlay);
+    --muted-foreground: var(--text-secondary);
+    --accent-foreground: var(--text-inverse);
+    --destructive: var(--status-danger);
+    --border: var(--surface-border);
+    --input: var(--surface-input);
+    --ring: var(--accent);
+    --chart-1: var(--accent);
+    --chart-2: var(--status-info);
+    --chart-3: var(--status-ok);
+    --chart-4: var(--status-warn);
+    --chart-5: var(--status-neutral);
+    --sidebar: var(--surface-panel);
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: var(--accent);
+    --sidebar-primary-foreground: var(--text-inverse);
+    --sidebar-accent: var(--surface-overlay);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--surface-border);
+    --sidebar-ring: var(--accent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    background: var(--surface-base);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    }
+  html {
+    font-family: var(--font-ui);
+    color-scheme: dark;
+    }
+}
+
+@layer components {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    border-radius: var(--radius-sm);
+    padding: 0.125rem 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+  }
+
+  .bn {
+    background: var(--status-neutral-bg);
+    color: var(--status-neutral);
+  }
+
+  .bi {
+    background: var(--status-info-bg);
+    color: var(--status-info);
+  }
+
+  .bk {
+    background: var(--status-lock-bg);
+    color: var(--status-lock);
+  }
+
+  .bo {
+    background: var(--status-ok-bg);
+    color: var(--status-ok);
+  }
+
+  .bd {
+    background: var(--status-danger-bg);
+    color: var(--status-danger);
+  }
+
+  .leaflet-container {
+    background: var(--map-base);
+    font-family: var(--font-ui);
+  }
+
+  .leaflet-control-zoom a,
+  .leaflet-control-attribution {
+    border-color: var(--surface-border) !important;
+    background: var(--surface-card) !important;
+    color: var(--text-secondary) !important;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: var(--surface-overlay) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .leaflet-tooltip {
+    border: 1px solid var(--surface-border) !important;
+    border-radius: var(--radius-sm) !important;
+    background: var(--surface-overlay) !important;
+    color: var(--text-primary) !important;
+    box-shadow: var(--shadow-card) !important;
+    font-size: 0.75rem;
+  }
+
+  .simulation-progress-active {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .simulation-progress-active::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.28),
+      transparent
+    );
+    animation: simulation-progress-sweep 1.2s linear infinite;
+    content: "";
+  }
+}
+
+@keyframes simulation-progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}

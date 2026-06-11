@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DronePharm — Dashboard Preview</title>
+<style>
+:root {
+  --surface-base:     #0a0e14;
+  --surface-panel:    #0f1520;
+  --surface-card:     #151c2a;
+  --surface-overlay:  #1a2236;
+  --surface-input:    #111827;
+  --surface-border:   #1e2d45;
+  --text-primary:     #e8edf5;
+  --text-secondary:   #8a9bb8;
+  --text-muted:       #4a5878;
+  --text-inverse:     #0a0e14;
+  --accent:           #00ff9c;
+  --accent-dim:       #00cc7a;
+  --accent-ghost:     rgba(0,255,156,0.08);
+  --status-ok:        #22c55e;
+  --status-ok-bg:     rgba(34,197,94,0.10);
+  --status-warn:      #f59e0b;
+  --status-warn-bg:   rgba(245,158,11,0.10);
+  --status-danger:    #ef4444;
+  --status-danger-bg: rgba(239,68,68,0.10);
+  --status-info:      #3b82f6;
+  --status-info-bg:   rgba(59,130,246,0.10);
+  --status-lock:      #8b5cf6;
+  --status-lock-bg:   rgba(139,92,246,0.10);
+  --status-neutral:   #64748b;
+  --status-neutral-bg:rgba(100,116,139,0.10);
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px var(--surface-border);
+  --shadow-focus: 0 0 0 2px var(--accent);
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--surface-base);color:var(--text-primary);font-family:var(--font-ui);font-size:14px;line-height:1.5;height:100vh;overflow:hidden}
+
+.shell{display:flex;height:100vh;overflow:hidden}
+
+/* Map */
+.map{flex:1;background:#080c11;position:relative;overflow:hidden}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(30,45,69,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(30,45,69,.3) 1px,transparent 1px);background-size:52px 52px}
+.map-label{position:absolute;bottom:20px;left:20px;font-family:var(--font-data);font-size:11px;color:var(--text-muted);background:var(--surface-card);padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--surface-border)}
+
+/* Route */
+.route-svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* Panel */
+.panel{width:380px;flex-shrink:0;background:var(--surface-panel);border-left:1px solid var(--surface-border);display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface-overlay) transparent}
+
+/* Panel header */
+.ph{padding:14px 20px;border-bottom:1px solid var(--surface-border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-title{font-size:1.0625rem;font-weight:600;color:var(--text-primary)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--radius-sm);font-size:.8125rem;font-weight:500;font-family:var(--font-ui)}
+.bk{background:var(--status-lock-bg);color:var(--status-lock)}
+.bi{background:var(--status-info-bg);color:var(--status-info)}
+.bo{background:var(--status-ok-bg);color:var(--status-ok)}
+.bn{background:var(--status-neutral-bg);color:var(--status-neutral)}
+.bd{background:var(--status-danger-bg);color:var(--status-danger)}
+
+/* Lock icon via css */
+.ico-lock{width:10px;height:12px;display:inline-block;position:relative}
+.ico-lock::before{content:'';position:absolute;top:5px;left:0;width:10px;height:8px;background:currentColor;border-radius:1px}
+.ico-lock::after{content:'';position:absolute;top:0;left:2px;width:6px;height:7px;border:2px solid currentColor;border-radius:3px 3px 0 0;background:transparent}
+
+.ico-warn{width:12px;height:11px;display:inline-block;clip-path:polygon(50% 0,100% 100%,0 100%);background:currentColor}
+
+/* Section */
+.sec{padding:14px 20px;border-bottom:1px solid var(--surface-border)}
+.sec-title{font-size:.6875rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+/* Telemetry grid */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tc{background:var(--surface-card);border:1px solid var(--surface-border);border-radius:var(--radius-md);padding:11px 13px;box-shadow:var(--shadow-card)}
+.tc.tw{border-color:var(--status-warn);background:rgba(245,158,11,.05)}
+.tc.td{border-color:var(--status-danger);background:rgba(239,68,68,.06)}
+.tc.ta .tv{color:var(--accent)}
+.tl{font-size:.6875rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.tv{font-family:var(--font-data);font-size:1.4375rem;color:var(--text-primary);font-variant-numeric:tabular-nums;line-height:1}
+.tc.td .tv{color:var(--status-danger)}
+.tc.tw .tv{color:var(--status-warn)}
+.tu{font-family:var(--font-ui);font-size:.75rem;color:var(--text-muted);margin-left:2px;font-variant-numeric:normal}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:var(--radius-sm);font-family:var(--font-ui);font-size:.875rem;font-weight:500;border:none;cursor:pointer;transition:background var(--transition-fast)}
+.bp{background:var(--accent);color:var(--text-inverse);font-weight:600}
+.bp:hover{background:var(--accent-dim)}
+.bg{background:transparent;color:var(--text-secondary);border:1px solid var(--surface-border)}
+.bg:hover{background:var(--surface-overlay);color:var(--text-primary)}
+.bdr{background:var(--status-danger-bg);color:var(--status-danger);border:1px solid rgba(239,68,68,.3)}
+.bdr:hover{background:rgba(239,68,68,.18)}
+.bdis{opacity:.32;cursor:not-allowed;pointer-events:none}
+
+/* Flight lock block */
+.flock{background:var(--status-lock-bg);border:1px solid rgba(139,92,246,.35);border-radius:var(--radius-md);padding:10px 13px;display:flex;align-items:center;gap:8px;color:var(--status-lock);font-size:.8125rem;margin-bottom:10px}
+.flock-bar{width:3px;height:32px;background:var(--status-lock);border-radius:2px;opacity:.6;flex-shrink:0}
+
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Replay */
+.replay{background:var(--surface-overlay);border:1px solid var(--surface-border);border-radius:var(--radius-lg);padding:13px}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rl{font-size:.8125rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+.tog{width:34px;height:18px;background:var(--accent);border-radius:9px;position:relative;cursor:pointer}
+.tog::after{content:'';position:absolute;top:2px;left:calc(100% - 16px);width:14px;height:14px;border-radius:50%;background:#fff;transition:transform var(--transition-base)}
+.spd{display:flex;gap:3px;margin-bottom:10px}
+.sb{font-family:var(--font-data);font-size:.75rem;padding:3px 9px;border-radius:var(--radius-sm);background:var(--surface-border);color:var(--text-muted);border:none;cursor:pointer}
+.sb.on{background:var(--accent-ghost);color:var(--accent);border:1px solid rgba(0,255,156,.28)}
+.rslider{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:linear-gradient(to right,var(--accent) 35%,var(--surface-border) 35%);outline:none;margin-bottom:8px}
+.rslider::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px var(--accent-ghost)}
+.rts{font-family:var(--font-data);font-size:.6875rem;color:var(--text-muted);text-align:right}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Map -->
+  <div class="map">
+    <div class="map-grid"></div>
+    <svg class="route-svg" viewBox="0 0 700 500" preserveAspectRatio="xMidYMid slice">
+      <!-- Route polyline -->
+      <polyline points="120,380 200,310 310,240 420,180 520,140" fill="none" stroke="#00ff9c" stroke-width="2.5" stroke-opacity=".88" stroke-linejoin="round"/>
+      <!-- Destination circle -->
+      <circle cx="520" cy="140" r="18" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-opacity=".7"/>
+      <circle cx="520" cy="140" r="4" fill="#f59e0b" opacity=".9"/>
+      <!-- Drone marker -->
+      <g transform="translate(310,240) rotate(45)">
+        <polygon points="0,-11 9,9 0,4 -9,9" fill="#00ff9c" opacity=".95"/>
+      </g>
+      <!-- Origin marker -->
+      <circle cx="120" cy="380" r="5" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+      <circle cx="120" cy="380" r="2" fill="#3b82f6"/>
+    </svg>
+    <div class="map-label">-19.9320, -43.9408 · alt 87m</div>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel">
+
+    <div class="ph">
+      <span class="ph-title">Pedido #2847</span>
+      <span class="badge bk">
+        <span class="ico-lock"></span>
+        em_voo
+      </span>
+    </div>
+
+    <!-- Telemetry -->
+    <div class="sec">
+      <div class="sec-title">Telemetria</div>
+      <div class="tg">
+        <div class="tc">
+          <div class="tl">Velocidade</div>
+          <div class="tv">42<span class="tu">km/h</span></div>
+        </div>
+        <div class="tc">
+          <div class="tl">Altitude</div>
+          <div class="tv">87<span class="tu">m</span></div>
+        </div>
+        <div class="tc td">
+          <div class="tl">
+            <span class="ico-warn" style="color:var(--status-danger);width:10px;height:9px"></span>
+            Bateria
+          </div>
+          <div class="tv">14<span class="tu">%</span></div>
+        </div>
+        <div class="tc ta">
+          <div class="tl">ETA</div>
+          <div class="tv">4<span class="tu">min 30s</span></div>
+        </div>
+        <div class="tc">
+          <div class="tl">Decorrido</div>
+          <div class="tv">12<span class="tu">min</span></div>
+        </div>
+        <div class="tc">
+          <div class="tl">Vento</div>
+          <div class="tv">3.5<span class="tu">m/s</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Control -->
+    <div class="sec">
+      <div class="sec-title">Controle</div>
+      <div class="flock">
+        <div class="flock-bar"></div>
+        <div>
+          <div style="font-weight:500;margin-bottom:2px">Operação bloqueada durante voo</div>
+          <div style="font-size:.75rem;opacity:.7">Aguardando conclusão da missão</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn bp bdis">Confirmar Entrega Manual</button>
+        <button class="btn bdr bdis">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- All badges -->
+    <div class="sec">
+      <div class="sec-title">Estados do Pedido</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span class="badge bn">pendente</span>
+        <span class="badge bi">calculado</span>
+        <span class="badge bi">despachado</span>
+        <span class="badge bk"><span class="ico-lock"></span>em_voo</span>
+        <span class="badge bo">entregue</span>
+        <span class="badge bd">cancelado</span>
+        <span class="badge bd">falha</span>
+      </div>
+    </div>
+
+    <!-- Replay -->
+    <div class="sec">
+      <div class="sec-title">Replay de Telemetria</div>
+      <div class="replay">
+        <div class="rh">
+          <span class="rl"><div class="tog"></div>Modo Replay ativo</span>
+          <div class="spd">
+            <button class="sb">0.5×</button>
+            <button class="sb on">1×</button>
+            <button class="sb">2×</button>
+            <button class="sb">4×</button>
+          </div>
+        </div>
+        <input type="range" class="rslider" value="35">
+        <div class="rts">2025-01-15  14:32:18</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

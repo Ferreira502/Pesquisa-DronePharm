@@ -1,0 +1,97 @@
+# =============================================================================
+# docker-compose.yml — DronePharm v2.0
+#
+# Serviços:
+#   api      → FastAPI DronePharm (porta 8000) — conecta ao Azure PostgreSQL
+#   pgadmin  → Interface web para administrar o banco (porta 5050) [opcional]
+#
+# Configuração:
+#   Copie .env.example para .env e preencha as credenciais do Azure:
+#     AZURE_PG_HOST, AZURE_PG_USER, AZURE_PG_PASSWORD, AZURE_PG_DATABASE
+#
+# Uso:
+#   docker compose up api          # sobe só a API
+#   docker compose up -d api       # modo daemon
+#   docker compose down            # para
+#
+# Acesso:
+#   API:     http://localhost:8000
+#   Docs:    http://localhost:8000/docs
+#   pgAdmin: http://localhost:5050  (com --profile tools)
+# =============================================================================
+
+services:
+
+  # ── API DronePharm — conecta diretamente ao Azure PostgreSQL ─────────────────
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: runner
+    image: dronepharm-api:2.0.0
+    container_name: dronepharm-api
+    restart: unless-stopped
+    environment:
+      # Credenciais Azure PostgreSQL — lidas do .env
+      AZURE_PG_HOST:     ${AZURE_PG_HOST}
+      AZURE_PG_PORT:     ${AZURE_PG_PORT:-5432}
+      AZURE_PG_USER:     ${AZURE_PG_USER}
+      AZURE_PG_PASSWORD: ${AZURE_PG_PASSWORD}
+      AZURE_PG_DATABASE: ${AZURE_PG_DATABASE:-dronepharm}
+      AZURE_PG_SSL:      ${AZURE_PG_SSL:-require}
+
+      # API Keys externas
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+
+      # MAVLink (sem USB no Docker)
+      MAVLINK_PORTA: ${MAVLINK_PORTA:-/dev/null}
+      MAVLINK_BAUD:  ${MAVLINK_BAUD:-57600}
+
+      # Servidor
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8000
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./output:/app/output
+    networks:
+      - dronepharm-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ── pgAdmin (opcional) ───────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dronepharm-pgadmin
+    restart: unless-stopped
+    profiles:
+      - tools           # só sobe com: docker compose --profile tools up
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    ${PGADMIN_DEFAULT_EMAIL:-admin@dronepharm.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?defina PGADMIN_DEFAULT_PASSWORD no .env para usar o pgAdmin}
+      PGADMIN_LISTEN_PORT:      5050
+    ports:
+      - "${PGADMIN_PORT:-5050}:5050"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - dronepharm-net
+
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  pgadmin-data:
+    name: dronepharm-pgadmin-data
+
+
+# ── Rede ──────────────────────────────────────────────────────────────────────
+networks:
+  dronepharm-net:
+    name: dronepharm-network
+    driver: bridge
