@@ -140,10 +140,3 @@ Para conferir as coordenadas geradas:
 ```bash
 python conferencia.py
 ```
-
-## Observacoes de versionamento
-
-- O repositorio principal controla backend, frontend e pesquisa juntos.
-- As pastas internas de backend e frontend nao devem ter `.git` proprio dentro deste monorepo.
-- Dependencias instaladas localmente, ambientes virtuais e caches nao devem ser commitados.
-- O arquivo `.gitignore` da raiz ignora `venv/`, `.venv/`, `__pycache__/`, arquivos `.pyc`, `node_modules/`, `.env` e arquivos temporarios comuns.
