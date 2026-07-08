@@ -1,142 +1,232 @@
-# Pesquisa-DronePharm
+# Pesquisa DronePharm
 
-Repositorio principal do projeto DronePharm, reunindo o sistema de entrega de medicamentos por drones e a pesquisa de dados usada para apoiar o estudo de localizacao, geocodificacao e visualizacao de farmacias.
+Repositorio de pesquisa do projeto DronePharm, preparado para acompanhar um artigo sobre roteirizacao de entregas de medicamentos por drone e por transporte urbano em Belo Horizonte, MG.
 
-O projeto esta organizado como um monorepo simples: backend, frontend e materiais de pesquisa ficam no mesmo repositorio para facilitar versionamento, apresentacao e reproducao dos experimentos.
+O repositorio inclui dados de farmacias cadastradas a partir do site do Governo Federal, geocodificacao com OpenStreetMap/Nominatim, rotas terrestres tracadas com dados do OpenStreetMap via OSRM, rota de drone por waypoints geograficos, mapas HTML, GeoJSON, relatorios JSON e relatorios PDF.
 
-## Estrutura geral
+## Resultado principal
 
-```text
-Pesquisa-DronePharm/
-|-- Back-End/
-|   `-- DronePharm/
-|-- Front-End/
-|   `-- DronePharmFrontEnd/
-|-- Pesquisa/
-|   `-- PesquisaFarmaciaDados/
-|-- .gitignore
-`-- README.md
-```
+| Modo | Distancia | Tempo de deslocamento | Tempo total | Observacoes |
+| --- | ---: | ---: | ---: | --- |
+| Transporte urbano | 65,603 km | 108,82 min | 168,81 min | inclui 60 min de servico |
+| Drone | 34,6513 km | 67,75 min | 67,75 min | rota viavel, carga de 4,82 kg |
 
-## Back-End/DronePharm
+Resumo comparativo:
 
-Contem o backend do DronePharm. E a parte responsavel por regras de negocio, roteirizacao, simulacao, persistencia e exposicao da API.
+- reducao de distancia: 30,9517 km;
+- reducao percentual: 47,18%;
+- energia estimada do drone: 895,56 Wh;
+- combustivel urbano estimado: 6,56 L;
+- custo urbano estimado com combustivel: R$ 40,67;
+- emissao urbana estimada: 15,154 kg CO2.
 
-Principais responsabilidades:
+Fonte do resumo: [resumo_comparativo.json](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/saida/resumo_comparativo.json)
 
-- Receber e gerenciar pedidos de entrega de medicamentos.
-- Calcular rotas para drones usando algoritmos de otimizacao.
-- Validar restricoes como capacidade, autonomia, vento e prioridade.
-- Registrar dados em banco e consultar historico operacional.
-- Expor endpoints REST com FastAPI.
-- Enviar dados de telemetria e status em tempo real via WebSocket.
-- Simular voos para testar o fluxo sem depender de hardware fisico.
+## Fontes de dados
 
-Pastas importantes dentro do backend:
+As farmacias foram cadastradas a partir de dados obtidos no site do Governo Federal. As planilhas baixadas por municipio estao em: [downloads_farmacias/](Pesquisa/PesquisaFarmaciaDados/data/pharms/downloads_farmacias/)
 
-- `algorithms/`: algoritmos de roteirizacao e otimizacao, como Clarke-Wright, algoritmo genetico, 2-opt, custo e distancia.
-- `apis/`: integracoes externas, como clima e elevacao.
-- `bd/`: configuracao de banco, modelos ORM e repositorios de acesso a dados.
-- `communication/`: comunicacao com sistemas externos/embarcados, incluindo MAVLink.
-- `config/`: configuracoes centrais do backend.
-- `constraints/`: verificadores de restricoes da rota e do drone.
-- `domain/`: definicoes de dominio, como estados de pedido.
-- `models/`: modelos de dominio usados pela logica e pelos algoritmos.
-- `replanning/`: monitoramento e replanejamento de rotas.
-- `server/`: aplicacao FastAPI, rotas, schemas, middlewares, seguranca, servicos e WebSockets.
-- `simulation/`: simulador de voo.
-- `tests/`: testes automatizados do backend.
-- `view/`: scripts de visualizacao local.
-- `docker/` e `docker-compose.yml`: suporte para execucao em container.
+Arquivos derivados das farmacias:
 
-Consulte tambem `Back-End/DronePharm/Readme.md` para detalhes de configuracao, endpoints e execucao.
+| Arquivo | Conteudo |
+| --- | --- |
+| [consolidado_farmacias.xlsx](Pesquisa/PesquisaFarmaciaDados/data/pharms/consolidado_farmacias.xlsx) | planilha consolidada das farmacias por municipio |
+| [farmacias_com_coordenadas.xlsx](Pesquisa/PesquisaFarmaciaDados/data/pharms/farmacias_com_coordenadas.xlsx) | farmacias com latitude e longitude |
+| [dados_com_coordenadas(Sheet1).csv](Pesquisa/PesquisaFarmaciaDados/dados_com_coordenadas%28Sheet1%29.csv) | base CSV usada nos scripts de rota |
+| [farmacias_processadas.csv](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/farmacias_processadas.csv) | farmacias filtradas para o experimento |
 
-## Front-End/DronePharmFrontEnd
+Os pedidos usados no cenario estao em: [pedidos_belo_horizonte.csv](Pesquisa/PesquisaFarmaciaDados/pedidos_belo_horizonte.csv)
 
-Contem a interface web do DronePharm. E um projeto React + TypeScript + Vite voltado para operacao, acompanhamento e visualizacao dos dados expostos pelo backend.
+O OpenStreetMap foi usado para geocodificar enderecos, exibir mapas de base e tracar rotas terrestres sobre a malha viaria. A consulta de rota terrestre foi feita pelo OSRM.
 
-Principais responsabilidades:
+## Codigos das rotas
 
-- Exibir o dashboard da operacao.
-- Gerenciar pedidos, drones e farmacias.
-- Consultar rotas, historico e indicadores.
-- Acompanhar monitoramento e telemetria.
-- Consumir a API REST e os fluxos de dados do backend.
+| Arquivo | Funcao |
+| --- | --- |
+| [pharms.py](Pesquisa/PesquisaFarmaciaDados/data/pharms/pharms.py) | consolida as planilhas de farmacias baixadas por municipio |
+| [cords.py](Pesquisa/PesquisaFarmaciaDados/data/pharms/cords.py) | geocodifica farmacias usando Nominatim/OpenStreetMap |
+| [gerar_rotas_farmacias.py](Pesquisa/PesquisaFarmaciaDados/gerar_rotas_farmacias.py) | gera rotas entre farmacias e pedidos, exportando JSON, GeoJSON e HTML |
+| [gerar_transporte_urbano.py](Pesquisa/PesquisaFarmaciaDados/gerar_transporte_urbano.py) | calcula rota urbana com OSRM Trip API e gera mapas/relatorios |
+| [plot_rota.py](Pesquisa/PesquisaFarmaciaDados/data/plot_rota.py) | gera mapas da rota de drone em diferentes camadas |
+| [relatorio_telemetria.py](Pesquisa/PesquisaFarmaciaDados/data/experimental_setup/relatorio_telemetria.py) | gera relatorio PDF de telemetria da rota de drone |
+| [gerar_mapa_comparativo.py](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/gerar_mapa_comparativo.py) | gera mapa e GeoJSON comparando rota urbana e rota de drone |
+| [codigos_reaproveitados/](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/codigos_reaproveitados/) | scripts reaproveitados como referencia da comparacao |
 
-Pastas importantes dentro do frontend:
+## Arquivos gerados
 
-- `src/api/`: clientes e funcoes de integracao com a API.
-- `src/components/`: componentes reutilizaveis de layout e interface.
-- `src/features/`: telas e funcionalidades principais, separadas por dominio.
-- `src/features/drones/`: cadastro, listagem e componentes ligados aos drones.
-- `src/features/farmacias/`: cadastro e listagem de farmacias.
-- `src/features/management/`: gestao de pedidos e paginas administrativas.
-- `src/features/monitoring/`: dashboard de monitoramento, mapa, telemetria e replay.
-- `src/features/kpis/`: indicadores e cards de desempenho.
-- `src/styles/`: tokens, design system e estilos globais.
-- `src/types/`: tipos TypeScript compartilhados.
-- `public/`: arquivos publicos estaticos.
-- `src/docs/`: documentacao auxiliar, especificacoes e arquivos de referencia.
+### Rotas farmacia-pedidos
 
-Consulte tambem `Front-End/DronePharmFrontEnd/README.md` para detalhes do projeto Vite/React.
+Pasta: [saida_rotas_pedidos/](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/)
 
-## Pesquisa/PesquisaFarmaciaDados
+| Arquivo | Conteudo |
+| --- | --- |
+| [rotas_farmacias.json](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/rotas_farmacias.json) | dados completos das rotas entre farmacias e pedidos |
+| [rotas_farmacias.geojson](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/rotas_farmacias.geojson) | geometrias em formato GIS |
+| [rotas_farmacias_mapa.html](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/rotas_farmacias_mapa.html) | mapa interativo |
+| [farmacias_processadas.csv](Pesquisa/PesquisaFarmaciaDados/saida_rotas_pedidos/farmacias_processadas.csv) | farmacias usadas na geracao |
 
-Contem os arquivos de pesquisa usados para levantar, conferir e visualizar dados de farmacias. Essa parte apoia a construcao do cenario do DronePharm, principalmente na etapa de localizacao geografica dos pontos de entrega e analise espacial.
+Resumo das 5 farmacias selecionadas:
 
-O foco da pesquisa e:
+| Farmacia | Latitude | Longitude | Rotas | Distancia total | Tempo total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| AG FARMA LTDA - ME | -19,9162884 | -43,9378304 | 20 | 65,602 km | 108,83 min |
+| ALFENAS E OLIVEIRA DROGARIA E PERFUMARIA LTDA | -19,8861502 | -43,9002370 | 20 | 181,952 km | 278,06 min |
+| AMC DROGARIA LTDA - ME | -19,9186817 | -43,8785493 | 20 | 195,353 km | 291,45 min |
+| APOLITANA FERNANDA GONCALVES | -19,9569769 | -43,9541110 | 20 | 118,094 km | 190,40 min |
+| AVANTE FORMULA LTDA - ME | -19,8736074 | -43,9197268 | 20 | 178,513 km | 264,69 min |
 
-- Trabalhar com uma base de farmacias e enderecos.
-- Geocodificar enderecos para obter latitude e longitude.
-- Conferir coordenadas usando OpenStreetMap/Nominatim.
-- Gerar planilhas com coordenadas e resultados de conferencia.
-- Criar mapa interativo dos pontos.
-- Incluir um deposito central de referencia para analise das conexoes entre origem e farmacias.
+### Transporte urbano
+
+Pasta: [saida_transporte_urbano/](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/)
+
+| Arquivo | Conteudo |
+| --- | --- |
+| [relatorio_rota_urbana.json](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/relatorio_rota_urbana.json) | metricas, paradas, pernas e geometria da rota urbana |
+| [rota_urbana.geojson](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/rota_urbana.geojson) | geometria da rota urbana |
+| [relatorio_transporte_urbano.pdf](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/relatorio_transporte_urbano.pdf) | relatorio executivo |
+| [mapa_terrestre_osm.html](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/mapa_terrestre_osm.html) | mapa com camada OpenStreetMap |
+| [mapa_terrestre_claro.html](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/mapa_terrestre_claro.html) | mapa com camada clara |
+| [mapa_terrestre_ruas.html](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/mapa_terrestre_ruas.html) | mapa com camada de ruas |
+| [mapa_terrestre_satelite.html](Pesquisa/PesquisaFarmaciaDados/saida_transporte_urbano/mapa_terrestre_satelite.html) | mapa com camada de satelite |
+
+Base urbana:
+
+| Campo | Valor |
+| --- | --- |
+| Farmacia | AG FARMA LTDA - ME |
+| Logradouro | RIO DE JANEIRO |
+| Latitude | -19,9162884 |
+| Longitude | -43,9378304 |
+
+Metricas urbanas:
+
+| Metrica | Valor |
+| --- | ---: |
+| Entregas | 20 |
+| Distancia | 65,603 km |
+| Tempo dirigindo | 108,82 min |
+| Tempo de servico | 60,00 min |
+| Tempo total | 168,81 min |
+| Velocidade media | 36,17 km/h |
+| Combustivel estimado | 6,56 L |
+| Custo estimado | R$ 40,67 |
+| CO2 estimado | 15,154 kg |
+
+Pernas registradas no relatorio urbano:
+
+| Seq. | Destino | Rua | Distancia | Tempo |
+| ---: | --- | --- | ---: | ---: |
+| 1 | pedido_1 | Avenida Afonso Pena | 1,448 km | 2,61 min |
+| 2 | pedido_2 | Rua da Bahia | 1,278 km | 2,19 min |
+| 3 | pedido_3 | Avenida do Contorno | 3,038 km | 5,71 min |
+| 4 | pedido_4 | Rua Rio de Janeiro | 1,060 km | 1,93 min |
+| 5 | pedido_5 | Avenida Amazonas | 2,529 km | 4,78 min |
+| 6 | pedido_6 | Rua dos Tupis | 1,298 km | 2,18 min |
+| 7 | pedido_7 | Rua Curitiba | 1,000 km | 1,69 min |
+| 8 | pedido_8 | Avenida Cristovao Colombo | 2,730 km | 4,40 min |
+| 9 | pedido_9 | Rua dos Goitacazes | 2,051 km | 3,49 min |
+| 10 | pedido_10 | Avenida Prudente de Morais | 3,775 km | 6,46 min |
+| 11 | pedido_11 | Rua Padre Eustaquio | 5,216 km | 8,16 min |
+| 12 | pedido_12 | Avenida Silva Lobo | 5,934 km | 9,84 min |
+| 13 | pedido_13 | Rua Platina | 4,676 km | 6,74 min |
+| 14 | pedido_14 | Avenida Nossa Senhora do Carmo | 4,582 km | 7,04 min |
+| 15 | pedido_15 | Rua Itajuba | 3,062 km | 5,25 min |
+| 16 | pedido_16 | Avenida Antonio Carlos | 8,031 km | 12,78 min |
+| 17 | pedido_17 | Rua Jacui | 4,630 km | 6,67 min |
+| 18 | pedido_18 | Avenida Raja Gabaglia | 6,811 km | 11,94 min |
+| 19 | pedido_19 | Rua Carijos | 0,962 km | 2,26 min |
+| 20 | pedido_20 | Avenida Bias Fortes | 1,491 km | 2,71 min |
+
+### Rota de drone
 
 Arquivos principais:
 
-- `plotar_mapa.py`: le uma planilha de entrada, geocodifica enderecos, adiciona o deposito central, salva `dados_com_coordenadas.xlsx` e gera um mapa interativo em HTML. Tambem tenta exportar o mapa para PDF quando Selenium, Pillow e Chromedriver estao disponiveis.
-- `conferencia.py`: abre `dados_com_coordenadas.xlsx`, consulta novamente os enderecos no OpenStreetMap e cria `resultado_conferencia.xlsx` com coordenadas encontradas e diferencas em relacao as coordenadas originais.
-- `verificar_colunas.py`: imprime os nomes exatos das colunas da planilha para ajudar a ajustar os scripts.
-- `dados_com_coordenadas.xlsx`: planilha com os dados geocodificados.
-- `resultado_conferencia.xlsx`: planilha gerada pela conferencia das coordenadas.
+| Arquivo | Conteudo |
+| --- | --- |
+| [coordenadas.json](Pesquisa/PesquisaFarmaciaDados/data/experimental_setup/coordenadas.json) | waypoints, carga, energia, custo e viabilidade |
+| [relatorio_telemetria_rota.pdf](Pesquisa/PesquisaFarmaciaDados/data/experimental_setup/relatorio_telemetria_rota.pdf) | relatorio de telemetria |
+| [rota_drone_openstreetmap.html](Pesquisa/PesquisaFarmaciaDados/data/rota_drone_openstreetmap.html) | mapa com OpenStreetMap |
+| [rota_drone_satelite_esri.html](Pesquisa/PesquisaFarmaciaDados/data/rota_drone_satelite_esri.html) | mapa com satelite |
+| [rota_drone_cartodb_positron.html](Pesquisa/PesquisaFarmaciaDados/data/rota_drone_cartodb_positron.html) | mapa com CartoDB Positron |
+| [rota_drone_cartodb_voyager.html](Pesquisa/PesquisaFarmaciaDados/data/rota_drone_cartodb_voyager.html) | mapa com CartoDB Voyager |
+| [rota_drone_mapas.pdf](Pesquisa/PesquisaFarmaciaDados/data/rota_drone_mapas.pdf) | mapas da rota em PDF |
+| [rotasDrone/](Pesquisa/PesquisaFarmaciaDados/rotasDrone/) | copias dos relatorios e mapas PDF |
 
-Observacao: a pasta `venv/` da pesquisa e ignorada pelo Git. Ambientes virtuais devem ser recriados localmente quando necessario.
+Metricas da rota de drone:
 
-## Como executar
+| Metrica | Valor |
+| --- | ---: |
+| Drone | DP-067 |
+| Pedidos | 20 |
+| Distancia | 34,6513 km |
+| Tempo | 67,75 min |
+| Energia | 895,56 Wh |
+| Carga | 4,82 kg |
+| Custo calculado | 7,4373488303617235 |
+| Viavel | true |
+| Status | calculada |
 
-### Backend
+Waypoints da rota de drone:
 
-```bash
-cd Back-End/DronePharm
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn server.app:app --reload --host 0.0.0.0 --port 8000
-```
+| Seq. | Ponto | Latitude | Longitude |
+| ---: | --- | ---: | ---: |
+| 0 | Farmacia Popular Central - BH | -19,927800000000000 | -43,941600000000000 |
+| 1 | Pedido #40 | -19,919483726154883 | -43,938615270418350 |
+| 2 | Pedido #57 | -19,917620483165702 | -43,939528170462815 |
+| 3 | Pedido #42 | -19,918264538170295 | -43,940782614835920 |
+| 4 | Pedido #45 | -19,920578416382906 | -43,941286374158210 |
+| 5 | Pedido #43 | -19,916835274609184 | -43,947361825190450 |
+| 6 | Pedido #47 | -19,914862507361940 | -43,944905172638140 |
+| 7 | Pedido #44 | -19,913427681540828 | -43,942713508214695 |
+| 8 | Pedido #55 | -19,886731540286174 | -43,928164730518420 |
+| 9 | Pedido #54 | -19,869284615730482 | -43,963817250481940 |
+| 10 | Pedido #49 | -19,907451836204714 | -43,970618452930180 |
+| 11 | Pedido #51 | -19,922738154607280 | -43,967140285719640 |
+| 12 | Pedido #37 | -19,924546633388367 | -43,991457695771370 |
+| 13 | Pedido #50 | -19,936170452819365 | -43,977283615024860 |
+| 14 | Pedido #56 | -19,957183604715830 | -43,965372840615930 |
+| 15 | Pedido #52 | -19,952641380274915 | -43,938174620583716 |
+| 16 | Pedido #48 | -19,941386205718462 | -43,951274608315730 |
+| 17 | Pedido #41 | -19,932874165308743 | -43,944128536709215 |
+| 18 | Pedido #46 | -19,935682174509317 | -43,927514836205470 |
+| 19 | Pedido #53 | -19,930482715603947 | -43,921735184620570 |
+| 20 | Pedido #39 | -19,924057381245670 | -43,935237184562915 |
+| 21 | Farmacia Popular Central - BH | -19,927800000000000 | -43,941600000000000 |
 
-Tambem ha suporte a Docker via `docker-compose.yml` dentro da pasta do backend.
+### Mapa comparativo
 
-### Frontend
+Pasta: [mapa_rotas_comparadas/](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/)
 
-```bash
-cd Front-End/DronePharmFrontEnd
-npm install
-npm run dev
-```
+| Arquivo | Conteudo |
+| --- | --- |
+| [mapa_drone_urbano.html](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/saida/mapa_drone_urbano.html) | mapa unico comparando rota urbana e rota de drone |
+| [rotas_drone_urbano.geojson](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/saida/rotas_drone_urbano.geojson) | geometrias das duas rotas e dos pontos |
+| [resumo_comparativo.json](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/saida/resumo_comparativo.json) | metricas finais da comparacao |
+| [relatorio_rota_urbana.json](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/dados_entrada/relatorio_rota_urbana.json) | entrada urbana usada na comparacao |
+| [rota_urbana.geojson](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/dados_entrada/rota_urbana.geojson) | geometria urbana usada na comparacao |
+| [coordenadas_drone.json](Pesquisa/PesquisaFarmaciaDados/mapa_rotas_comparadas/dados_entrada/coordenadas_drone.json) | entrada da rota de drone usada na comparacao |
 
-### Pesquisa
+## Pontos de entrega
 
-```bash
-cd Pesquisa/PesquisaFarmaciaDados
-python -m venv venv
-source venv/bin/activate
-pip install pandas openpyxl geopy folium selenium pillow
-python plotar_mapa.py entrada.xlsx
-```
-
-Para conferir as coordenadas geradas:
-
-```bash
-python conferencia.py
-```
+| Pedido | Rua | Latitude | Longitude |
+| --- | --- | ---: | ---: |
+| pedido_1 | Avenida Afonso Pena | -19,924057381245670 | -43,935237184562915 |
+| pedido_2 | Rua da Bahia | -19,919483726154883 | -43,938615270418350 |
+| pedido_3 | Avenida do Contorno | -19,932874165308743 | -43,944128536709215 |
+| pedido_4 | Rua Rio de Janeiro | -19,918264538170295 | -43,940782614835920 |
+| pedido_5 | Avenida Amazonas | -19,916835274609184 | -43,947361825190450 |
+| pedido_6 | Rua dos Tupis | -19,913427681540828 | -43,942713508214695 |
+| pedido_7 | Rua Curitiba | -19,920578416382906 | -43,941286374158210 |
+| pedido_8 | Avenida Cristovao Colombo | -19,935682174509317 | -43,927514836205470 |
+| pedido_9 | Rua dos Goitacazes | -19,914862507361940 | -43,944905172638140 |
+| pedido_10 | Avenida Prudente de Morais | -19,941386205718462 | -43,951274608315730 |
+| pedido_11 | Rua Padre Eustaquio | -19,907451836204714 | -43,970618452930180 |
+| pedido_12 | Avenida Silva Lobo | -19,936170452819365 | -43,977283615024860 |
+| pedido_13 | Rua Platina | -19,922738154607280 | -43,967140285719640 |
+| pedido_14 | Avenida Nossa Senhora do Carmo | -19,952641380274915 | -43,938174620583716 |
+| pedido_15 | Rua Itajuba | -19,930482715603947 | -43,921735184620570 |
+| pedido_16 | Avenida Antonio Carlos | -19,869284615730482 | -43,963817250481940 |
+| pedido_17 | Rua Jacui | -19,886731540286174 | -43,928164730518420 |
+| pedido_18 | Avenida Raja Gabaglia | -19,957183604715830 | -43,965372840615930 |
+| pedido_19 | Rua Carijos | -19,917620483165702 | -43,939528170462815 |
+| pedido_20 | Avenida Bias Fortes | -19,926174350284620 | -43,937184205731945 |

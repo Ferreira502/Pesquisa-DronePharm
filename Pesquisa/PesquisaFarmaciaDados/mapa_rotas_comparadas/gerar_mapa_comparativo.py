@@ -198,13 +198,13 @@ def add_legend(map_object: folium.Map, summary: dict[str, Any]) -> None:
       box-shadow: 0 4px 16px rgba(0,0,0,.16);
       min-width: 250px;
     ">
-      <div style="font-weight:700;font-size:14px;margin-bottom:8px;">Rotas comparadas</div>
-      <div><span style="display:inline-block;width:28px;height:4px;background:{URBAN_COLOR};margin-right:8px;vertical-align:middle;"></span>Rota urbana</div>
-      <div style="margin-top:6px;"><span style="display:inline-block;width:28px;border-top:4px dashed {DRONE_COLOR};margin-right:8px;vertical-align:middle;"></span>Rota drone</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px;">Compared routes</div>
+      <div><span style="display:inline-block;width:28px;height:4px;background:{URBAN_COLOR};margin-right:8px;vertical-align:middle;"></span>Urban route</div>
+      <div style="margin-top:6px;"><span style="display:inline-block;width:28px;border-top:4px dashed {DRONE_COLOR};margin-right:8px;vertical-align:middle;"></span>Drone route</div>
       <hr style="border:0;border-top:1px solid #e3e7eb;margin:10px 0;">
-      <div>Urbana: <b>{summary['urban_distance_km']:.2f} km</b> | <b>{summary['urban_minutes']:.1f} min</b></div>
+      <div>Urban: <b>{summary['urban_distance_km']:.2f} km</b> | <b>{summary['urban_minutes']:.1f} min</b></div>
       <div>Drone: <b>{summary['drone_distance_km']:.2f} km</b> | <b>{summary['drone_minutes']:.1f} min</b></div>
-      <div>Economia distancia: <b>{summary['distance_reduction_percent']:.1f}%</b></div>
+      <div>Distance savings: <b>{summary['distance_reduction_percent']:.1f}%</b></div>
     </div>
     """
     map_object.get_root().html.add_child(folium.Element(html))
